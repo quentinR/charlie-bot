@@ -21,6 +21,6 @@ bot.dialog('/', (session) => {
   console.log(session.message.text)
 })
 
-router.post('/', botConnector.listen)
+router.post('/', botConnector.listen())
 
 module.exports = router;

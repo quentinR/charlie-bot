@@ -1,15 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const request = require('request');
-const api = require('../graph-api') ({
-  baseUrl: 'https://prolific-graph-api.herokuapp.com/graphql'
-});
-
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Charlie' });
-});
-
 // Connection to Microsoft Bot Framework
 const botBuilder = require('botbuilder')
 const botConnector = new botBuilder.ChatConnector({
@@ -17,10 +7,16 @@ const botConnector = new botBuilder.ChatConnector({
   appPassword: process.env.MICROSOFT_APP_PASSWORD
 })
 const bot = new botBuilder.UniversalBot(botConnector)
-
 // Recast
 const recast = require('recastai')
 const recastClient = new recast.Client(process.env.RECAST_AI)
+// Bot controller
+const botController = require('../controllers/bot_controller')
+
+/* GET home page. */
+router.get('/', function(req, res, next) {
+  res.render('index', { title: 'Charlie' });
+});
 
 // Event when Message received
 bot.dialog('/', (session) => {
@@ -36,37 +32,10 @@ bot.dialog('/', (session) => {
 
   recastClient.textConverse(text, { conversationToken: session.message.address.conversation.id })
   .then((res) => {
-    const user = session.message.address.user.name;
-    var conversation = session.message.address.conversation.name;
-    if (!conversation) {
-      conversation = "a direct message"
-    } else {
-      conversation = "#" + conversation
-    }
-    const answer = "I'm talking with @" + user + "  in " + conversation;
-    session.send(answer);
-    // console.log("res = ")
-    // console.log(res)
-    // const action = res.action;
-    // console.log("action = ")
-    // console.log(action)
-    // const intents = res.intents;
-    // console.log("intents = ")
-    // console.log(intents)
-    // const entities = res.entities
-    // console.log("entities = ")
-    // console.log(entities)
-    // const replies = res.replies;
-    // console.log("replies = ")
-    // console.log(replies)
-
-    // if (!replies.length) {
-    //   session.send('I didn\'t understand... Sorry :(')
-    //   return
-    // }
-    // replies.forEach(reply => session.send(reply));
+    botController.processResponse(session, res)
   })
-  .catch(() => {
+  .catch((err) => {
+    console.log(err)
     session.send('I need some sleep right now... Talk to me later!')
   });
 });

@@ -12,8 +12,8 @@ function respond(session, replies) {
 }
 
 function getExperts(session, entities, replies) {
-  entities.forEach(entity => {
-    api.findTopicExperts(entity.value)
+  const entity = entities[0];
+  api.findTopicExperts(entity.value)
       .then(results => {
         const { topic, department } = results.data;
 
@@ -75,7 +75,6 @@ function getExperts(session, entities, replies) {
       .catch(() => {
         respond(session, "Who knows?")
       });
-  });
 }
 
 function processAction(session, res) {
@@ -86,17 +85,20 @@ function processAction(session, res) {
   // Use external services: use res.memory('notion') if you got a notion from this action
   // console.log(res.memory)
   
-  console.log(action)
-  switch (action.slug) {
-    case 'expertise':
-      getExperts(session, entities, replies);
-      break;
-    case 'department':
-      getExperts(session, entities, replies);
-      break;
-    default:
-      respond(session, replies);
-      break;
+  console.log("entities = ")
+  console.log(entities)
+  let slugEntities = [];
+  entities.forEach(entity => {
+    if (entity.name == action.slug) {
+      slugEntities.push(entity);
+    }
+  });
+  console.log("slugEntities = ");
+  console.log(slugEntities);
+  if (slugEntities.length < 1) {
+    respond(session, replies);
+  } else {
+    getExperts(session, slugEntities, replies)
   }
 }
 
